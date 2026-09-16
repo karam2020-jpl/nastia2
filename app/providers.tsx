@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import { initialDelivery, initialProducts, Product } from './data';
-import {cartLineKey,CartItem,changeCartLine,readCartStorage,reconcileCart,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from './store-utils';
+import {addCartLine,CartItem,changeCartLine,readCartStorage,reconcileCart,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from './store-utils';
 export {cartLineKey,parseStoredCart} from './store-utils';
 
 type Store = {
@@ -45,18 +45,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   const add = useCallback((product: Product, shade = product.shades[0], size = product.sizes[0]) => {
     if (!shade || !size || product.stock < 1) return;
-    const key = cartLineKey(product.id, shade, size);
-    setItems((current) => {
-      const existing = current.find(
-        (item) => cartLineKey(item.product.id, item.shade, item.size) === key,
-      );
-      if (!existing) return [...current, { product, qty: 1, shade, size }];
-      return current.map((item) =>
-        cartLineKey(item.product.id, item.shade, item.size) === key
-          ? { ...item, qty: Math.min(item.qty + 1, product.stock) }
-          : item,
-      );
-    });
+    setItems((current) => addCartLine(current,product,shade,size));
   }, []);
 
   const change = useCallback((lineKey: string, quantity: number) => {

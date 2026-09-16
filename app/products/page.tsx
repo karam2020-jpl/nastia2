@@ -1,6 +1,6 @@
 'use client';
 import {useSearchParams} from 'next/navigation';
-import {Suspense,useMemo,useState} from 'react';
+import {Suspense,useEffect,useMemo,useState} from 'react';
 import {Header,Footer,ProductCard} from '../components';
 import {categories} from '../data';
 import {useStore} from '../providers';
@@ -13,6 +13,8 @@ function Results(){
   const [category,setCategory]=useState(params.get('category')||'');
   const [max,setMax]=useState<number|null>(null);
   const [sort,setSort]=useState('featured');
+  const parameterQuery=params.get('q')||'';
+  useEffect(()=>setQ(parameterQuery),[parameterQuery]);
   const priceFloor=products.length?Math.min(...products.map((p)=>p.price)):0;
   const priceCeiling=products.length?Math.max(...products.map((p)=>p.price)):0;
   const selectedMaximum=max??priceCeiling;

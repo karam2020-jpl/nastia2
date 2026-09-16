@@ -30,15 +30,35 @@ export const writeCartStorage = (storage: CartStorage, items: CartItem[]): boole
   try { storage.setItem('nastia-cart',JSON.stringify(items)); return true; } catch { return false; }
 };
 
-export const changeCartLine = (items: CartItem[], lineKey: string, quantity: number) => items.map((item) => cartLineKey(item.product.id,item.shade,item.size) === lineKey ? {...item,qty:Math.max(1,Math.min(Math.trunc(quantity),item.product.stock))} : item);
+export const productQuantityInCart = (items: CartItem[], productId: string) => items.reduce((total,item)=>total+(item.product.id===productId?item.qty:0),0);
+export const addCartLine = (items: CartItem[], product: Product, shade: string, size: string): CartItem[] => {
+  if (!shade || !size || productQuantityInCart(items,product.id) >= product.stock) return items;
+  const key=cartLineKey(product.id,shade,size);
+  const existing=items.some((item)=>cartLineKey(item.product.id,item.shade,item.size)===key);
+  return existing?items.map((item)=>cartLineKey(item.product.id,item.shade,item.size)===key?{...item,product,qty:item.qty+1}:item):[...items,{product,shade,size,qty:1}];
+};
+export const changeCartLine = (items: CartItem[], lineKey: string, quantity: number) => {
+  const target=items.find((item)=>cartLineKey(item.product.id,item.shade,item.size)===lineKey);
+  if (!target)return items;
+  const otherQuantity=items.reduce((total,item)=>total+(item.product.id===target.product.id&&cartLineKey(item.product.id,item.shade,item.size)!==lineKey?item.qty:0),0);
+  const availableForLine=Math.max(1,target.product.stock-otherQuantity);
+  return items.map((item)=>cartLineKey(item.product.id,item.shade,item.size)===lineKey?{...item,qty:Math.max(1,Math.min(Math.trunc(quantity),availableForLine))}:item);
+};
 export const removeCartLine = (items: CartItem[], lineKey: string) => items.filter((item) => cartLineKey(item.product.id,item.shade,item.size) !== lineKey);
 export const sanitizeProduct = (product: Product): Product => ({...product,price:Math.max(0,product.price),stock:Math.max(0,Math.trunc(product.stock))});
 export const updateDeliveryFee = (fees: Record<string,number>, province: string, fee: number) => ({...fees,[province]:Math.max(0,fee)});
 export const cleanProductOptions = (values: string[]) => values.map((value) => value.trim()).filter(Boolean);
 
 /** Refresh cart snapshots from the live catalogue and discard lines that can no longer be ordered. */
-export const reconcileCart = (items: CartItem[], products: Product[]): CartItem[] => items.flatMap((item) => {
-  const product = products.find((candidate) => candidate.id === item.product.id);
-  if (!product || product.stock < 1 || !product.shades.includes(item.shade) || !product.sizes.includes(item.size)) return [];
-  return [{...item,product,qty:Math.min(item.qty,product.stock)}];
-});
+export const reconcileCart = (items: CartItem[], products: Product[]): CartItem[] => {
+  const allocated:Record<string,number>={};
+  return items.flatMap((item)=>{
+    const product=products.find((candidate)=>candidate.id===item.product.id);
+    if(!product||product.stock<1||!product.shades.includes(item.shade)||!product.sizes.includes(item.size))return [];
+    const available=product.stock-(allocated[product.id]??0);
+    if(available<1)return [];
+    const qty=Math.min(item.qty,available);
+    allocated[product.id]=(allocated[product.id]??0)+qty;
+    return [{...item,product,qty}];
+  });
+};
