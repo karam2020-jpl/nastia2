@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import { initialDelivery, initialProducts, Product } from './data';
-import {cartLineKey,CartItem,changeCartLine,readCartStorage,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from './store-utils';
+import {cartLineKey,CartItem,changeCartLine,readCartStorage,reconcileCart,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from './store-utils';
 export {cartLineKey,parseStoredCart} from './store-utils';
 
 type Store = {
@@ -34,7 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [cartLoaded, setCartLoaded] = useState(false);
 
   useEffect(() => {
-    setItems(readCartStorage(window.localStorage));
+    setItems(reconcileCart(readCartStorage(window.localStorage),initialProducts));
     setCartLoaded(true);
   }, []);
 
@@ -69,11 +69,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   const saveProduct = useCallback((product: Product) => {
     const clean = sanitizeProduct(product);
-    setProducts((current) => {
-      const exists = current.some((item) => item.id === clean.id);
-      return exists ? current.map((item) => (item.id === clean.id ? clean : item)) : [...current, clean];
-    });
-  }, []);
+    const exists = products.some((item) => item.id === clean.id);
+    const nextProducts = exists ? products.map((item) => (item.id === clean.id ? clean : item)) : [...products, clean];
+    setProducts(nextProducts);
+    setItems((current) => reconcileCart(current,nextProducts));
+  }, [products]);
+
+  const deleteProduct = useCallback((id: string) => {
+    const nextProducts = products.filter((item) => item.id !== id);
+    setProducts(nextProducts);
+    setItems((current) => reconcileCart(current,nextProducts));
+  }, [products]);
 
   const value = useMemo<Store>(
     () => ({
@@ -85,11 +91,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       remove,
       clear: () => setItems([]),
       saveProduct,
-      deleteProduct: (id) => setProducts((current) => current.filter((item) => item.id !== id)),
+      deleteProduct,
       setDeliveryFee: (province, fee) =>
         setDeliveryFees((current) => updateDeliveryFee(current,province,fee)),
     }),
-    [items, products, deliveryFees, add, change, remove, saveProduct],
+    [items, products, deliveryFees, add, change, remove, saveProduct, deleteProduct],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

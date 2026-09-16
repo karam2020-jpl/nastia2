@@ -34,3 +34,11 @@ export const changeCartLine = (items: CartItem[], lineKey: string, quantity: num
 export const removeCartLine = (items: CartItem[], lineKey: string) => items.filter((item) => cartLineKey(item.product.id,item.shade,item.size) !== lineKey);
 export const sanitizeProduct = (product: Product): Product => ({...product,price:Math.max(0,product.price),stock:Math.max(0,Math.trunc(product.stock))});
 export const updateDeliveryFee = (fees: Record<string,number>, province: string, fee: number) => ({...fees,[province]:Math.max(0,fee)});
+export const cleanProductOptions = (values: string[]) => values.map((value) => value.trim()).filter(Boolean);
+
+/** Refresh cart snapshots from the live catalogue and discard lines that can no longer be ordered. */
+export const reconcileCart = (items: CartItem[], products: Product[]): CartItem[] => items.flatMap((item) => {
+  const product = products.find((candidate) => candidate.id === item.product.id);
+  if (!product || product.stock < 1 || !product.shades.includes(item.shade) || !product.sizes.includes(item.size)) return [];
+  return [{...item,product,qty:Math.min(item.qty,product.stock)}];
+});

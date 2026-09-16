@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {cartLineKey,changeCartLine,parseStoredCart,readCartStorage,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from '../app/store-utils.ts';
+import {cartLineKey,changeCartLine,cleanProductOptions,parseStoredCart,readCartStorage,reconcileCart,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from '../app/store-utils.ts';
 
 const product={id:'lipstick',name:'Rouge',brand:'Dior',category:'المكياج',price:54000,description:'test',shades:['وردي','أحمر'],sizes:['3.5 غم'],stock:5,color:'#fff'};
 const variants=[{product,qty:1,shade:'وردي',size:'3.5 غم'},{product,qty:2,shade:'أحمر',size:'3.5 غم'}];
@@ -23,4 +23,18 @@ test('storage access failures are contained',()=>{
 test('delivery and product admin values cannot become negative',()=>{
  assert.equal(updateDeliveryFee({بغداد:5000},'بغداد',-5).بغداد,0);
  assert.deepEqual(sanitizeProduct({...product,price:-1,stock:-2}),{...product,price:0,stock:0});
+});
+test('cart follows current product price, stock and available options',()=>{
+ const current={...product,price:61000,stock:1,shades:['وردي']};
+ const result=reconcileCart(variants,[current]);
+ assert.equal(result.length,1);assert.equal(result[0].shade,'وردي');
+ assert.equal(result[0].qty,1);assert.equal(result[0].product.price,61000);
+});
+test('deleted and unavailable products cannot remain in checkout cart',()=>{
+ assert.deepEqual(reconcileCart(variants,[]),[]);
+ assert.deepEqual(reconcileCart(variants,[{...product,stock:0}]),[]);
+});
+test('product options are cleaned and empty option lists are detectable',()=>{
+ assert.deepEqual(cleanProductOptions(['  وردي  ','', '   ']),['وردي']);
+ assert.equal(cleanProductOptions(['', '   ']).length,0);
 });

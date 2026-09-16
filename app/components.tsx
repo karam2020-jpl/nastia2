@@ -3,12 +3,15 @@
 import Link from 'next/link';
 import { Menu, Minus, Plus, Search, ShoppingBag, Trash2, Truck, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { money, Product } from './data';
 import { cartLineKey, useStore } from './providers';
 
 export function Header() {
   const { items } = useStore();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchQuery,setSearchQuery]=useState('');
+  const router=useRouter();
   const menuButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -32,9 +35,9 @@ export function Header() {
       <header className="header">
         <div className="container head">
           <Link className="logo" href="/">nastia</Link>
-          <form className="search" action="/products">
+          <form className="search" onSubmit={(event)=>{event.preventDefault();router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`)}}>
             <Search size={18} aria-hidden="true" />
-            <input name="q" aria-label="البحث" placeholder="ابحثي عن منتج أو ماركة" />
+            <input name="q" value={searchQuery} onChange={(event)=>setSearchQuery(event.target.value)} aria-label="البحث" placeholder="ابحثي عن منتج أو ماركة" />
           </form>
           <nav className="nav" aria-label="التنقل الرئيسي">
             <Link className="desktop-link" href="/products">المنتجات</Link>
