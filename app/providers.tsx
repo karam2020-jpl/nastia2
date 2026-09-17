@@ -23,6 +23,7 @@ type Store = {
   saveProduct: (product: Product) => void;
   deleteProduct: (id: string) => void;
   setDeliveryFee: (province: string, fee: number) => void;
+  refreshCatalog: () => Promise<void>;
 };
 
 const StoreContext = createContext<Store | null>(null);
@@ -33,15 +34,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [deliveryFees, setDeliveryFees] = useState(initialDelivery);
   const [cartLoaded, setCartLoaded] = useState(false);
 
+  const refreshCatalog=useCallback(async()=>{const response=await fetch('/api/catalog');if(!response.ok)throw new Error('catalog');const catalog=await response.json() as {products:Product[];deliveryFees:Record<string,number>};setProducts(catalog.products);setDeliveryFees(catalog.deliveryFees);setItems((current)=>reconcileCart(current,catalog.products))},[]);
+
   useEffect(() => {
-    setItems(reconcileCart(readCartStorage(window.localStorage),initialProducts));
+    setItems(readCartStorage(window.localStorage));
     setCartLoaded(true);
-    fetch('/api/catalog').then((response)=>response.ok?response.json():Promise.reject()).then((catalog:{products:Product[];deliveryFees:Record<string,number>})=>{
-      setProducts(catalog.products);
-      setDeliveryFees(catalog.deliveryFees);
-      setItems((current)=>reconcileCart(current,catalog.products));
-    }).catch(()=>{/* Keep seed data available if the local server is temporarily unavailable. */});
-  }, []);
+    void refreshCatalog().catch(()=>{/* Preserve the stored cart unchanged when the catalogue cannot load. */});
+  }, [refreshCatalog]);
 
   useEffect(() => {
     if (!cartLoaded) return;
@@ -88,8 +87,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       deleteProduct,
       setDeliveryFee: (province, fee) =>
         setDeliveryFees((current) => updateDeliveryFee(current,province,fee)),
+      refreshCatalog,
     }),
-    [items, products, deliveryFees, add, change, remove, saveProduct, deleteProduct],
+    [items, products, deliveryFees, add, change, remove, saveProduct, deleteProduct, refreshCatalog],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

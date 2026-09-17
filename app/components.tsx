@@ -29,8 +29,7 @@ export function Header() {
   return (
     <>
       <div className="topnote">
-        <Truck size={14} aria-hidden="true" /> توصيل متاح إلى بغداد، البصرة، أربيل، النجف،
-        كربلاء ونينوى • الدفع عند الاستلام
+        <Truck size={14} aria-hidden="true" /> التوصيل إلى جميع محافظات العراق
       </div>
       <header className="header">
         <div className="container head">
@@ -75,7 +74,7 @@ export function Footer() {
     <footer className="footer">
       <div className="container">
         <div><div className="logo" style={{ color: 'white' }}>Nastia Beauty</div><p>اختيارات عالمية للجمال، بواجهة عراقية أنيقة.</p></div>
-        <div><b>الدفع والتوصيل</b><p>الدفع عند الاستلام فقط</p><p>يُحفظ طلبك بأمان بعد التحقق من المخزون والتوصيل.</p></div>
+        <div><b>التوصيل</b><p>التوصيل إلى جميع محافظات العراق</p><p>يُحفظ طلبك بأمان بعد التحقق من المخزون والتوصيل.</p></div>
       </div>
     </footer>
   );
@@ -83,6 +82,7 @@ export function Footer() {
 
 export function ProductCard({ p }: { p: Product }) {
   const { add } = useStore();
+  const [added,setAdded]=useState(false);
   return (
     <article className="card">
       <Link href={`/products/${p.id}`}><div className="product-art" style={{ '--c': p.color } as React.CSSProperties}><span /></div></Link>
@@ -90,9 +90,10 @@ export function ProductCard({ p }: { p: Product }) {
         <span className="brand">{p.brand}</span>
         <Link href={`/products/${p.id}`}><h3>{p.name}</h3></Link>
         <span className="price">{money(p.price)}</span>
-        <button className="btn" onClick={() => add(p)} disabled={p.stock === 0}>
+        <button className="btn" onClick={() => {add(p);setAdded(true)}} disabled={p.stock === 0}>
           <ShoppingBag size={16} /> {p.stock ? 'أضيفي للسلة' : 'نفد المخزون'}
         </button>
+        {added&&<small className="added-message" role="status">تمت الإضافة إلى السلة</small>}
       </div>
     </article>
   );
