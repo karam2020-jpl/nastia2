@@ -29,8 +29,7 @@ export function Header() {
   return (
     <>
       <div className="topnote">
-        <Truck size={14} aria-hidden="true" /> توصيل متاح إلى بغداد، البصرة، أربيل، النجف،
-        كربلاء ونينوى • الدفع عند الاستلام
+        <Truck size={14} aria-hidden="true" /> التوصيل إلى جميع محافظات العراق
       </div>
       <header className="header">
         <div className="container head">
@@ -77,7 +76,7 @@ export function Footer() {
     <footer className="footer">
       <div className="container">
         <div><div className="logo" style={{ color: 'white' }}>nastia</div><p>اختيارات عالمية للجمال، بواجهة عراقية أنيقة.</p></div>
-        <div><b>الدفع والتوصيل</b><p>الدفع عند الاستلام فقط</p><p>هذه نسخة عرض تجريبية — لا تُرسل طلبات حقيقية.</p></div>
+        <div><b>التوصيل</b><p>التوصيل إلى جميع محافظات العراق</p><p>هذه نسخة عرض تجريبية — لا تُرسل طلبات حقيقية.</p></div>
       </div>
     </footer>
   );

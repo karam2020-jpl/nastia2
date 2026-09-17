@@ -16,7 +16,7 @@ type Store = {
   items: CartItem[];
   products: Product[];
   deliveryFees: Record<string, number>;
-  add: (product: Product, shade?: string, size?: string) => void;
+  add: (product: Product, shade?: string, size?: string, quantity?: number) => void;
   change: (lineKey: string, quantity: number) => void;
   remove: (lineKey: string) => void;
   clear: () => void;
@@ -28,7 +28,16 @@ type Store = {
 const StoreContext = createContext<Store | null>(null);
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<{items: CartItem[]; message: string; noticeId: number}>({items: [], message: '', noticeId: 0});
+  const {items} = cart;
+  const setItems = useCallback((update: CartItem[] | ((current: CartItem[]) => CartItem[])) => {
+    setCart((current) => ({...current, items: typeof update === 'function' ? update(current.items) : update}));
+  }, []);
+  useEffect(() => {
+    if (!cart.message) return;
+    const timer = setTimeout(() => setCart((current) => ({...current, message: ''})), 4000);
+    return () => clearTimeout(timer);
+  }, [cart.noticeId, cart.message]);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [deliveryFees, setDeliveryFees] = useState(initialDelivery);
   const [cartLoaded, setCartLoaded] = useState(false);
@@ -43,10 +52,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
     writeCartStorage(window.localStorage,items);
   }, [items, cartLoaded]);
 
-  const add = useCallback((product: Product, shade = product.shades[0], size = product.sizes[0]) => {
-    if (!shade || !size || product.stock < 1) return;
-    setItems((current) => addCartLine(current,product,shade,size));
-  }, []);
+  const add = useCallback((product: Product, shade = product.shades[0], size = product.sizes[0], quantity = 1) => {
+    setCart((current) => {
+      const liveProduct = products.find((item) => item.id === product.id);
+      const used = current.items.reduce((sum, item) => sum + (item.product.id === product.id ? item.qty : 0), 0);
+      if (!liveProduct || !liveProduct.shades.includes(shade) || !liveProduct.sizes.includes(size) || !Number.isInteger(quantity) || quantity < 1) {
+        return {...current, message: 'تعذرت الإضافة. يرجى التحقق من خيارات المنتج.', noticeId: current.noticeId + 1};
+      }
+      if (used + quantity > liveProduct.stock) {
+        return {...current, message: 'الكمية المطلوبة تتجاوز المخزون المتاح.', noticeId: current.noticeId + 1};
+      }
+      let next = current.items;
+      for (let i = 0; i < quantity; i++) next = addCartLine(next, liveProduct, shade, size);
+      return {items: next, message: 'تمت إضافة المنتج إلى السلة', noticeId: current.noticeId + 1};
+    });
+  }, [products]);
 
   const change = useCallback((lineKey: string, quantity: number) => {
     setItems((current) => changeCartLine(current,lineKey,quantity));
@@ -59,7 +79,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const saveProduct = useCallback((product: Product) => {
     const clean = sanitizeProduct(product);
     const exists = products.some((item) => item.id === clean.id);
-    const nextProducts = exists ? products.map((item) => (item.id === clean.id ? clean : item)) : [...products, clean];
+    const nextProducts = exists ? products.map((item) => (item.id === clean.id ? clean : item)) : [clean, ...products];
     setProducts(nextProducts);
     setItems((current) => reconcileCart(current,nextProducts));
   }, [products]);
@@ -87,7 +107,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     [items, products, deliveryFees, add, change, remove, saveProduct, deleteProduct],
   );
 
-  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
+  return <StoreContext.Provider value={value}>{children}<div className="cart-notification" role="status" aria-live="polite" aria-atomic="true">{cart.message && <div key={cart.noticeId} className="cart-notification-body"><span>{cart.message}</span><button type="button" aria-label="إغلاق الإشعار" onClick={() => setCart((current) => ({...current, message: ''}))}>×</button></div>}</div></StoreContext.Provider>;
 }
 
 export const useStore = () => {

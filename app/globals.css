@@ -10,3 +10,7 @@
 
 .field-error{color:#a43b32;font-size:12px;font-weight:600}.field [aria-invalid="true"]{border-color:#b84c42;background:#fffafa}.summary-product{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.summary-product span{font-weight:600}.summary-product small{display:block;color:#697471;font-weight:400}.order-lines{margin-bottom:20px}.address-preview{font-style:normal;background:var(--pale);padding:12px;border-radius:10px;line-height:1.8}.checkout-submit{width:100%;margin-top:12px}.success-mark{font-size:55px}
 @media(max-width:800px){.checkout .summary{position:static}.checkout .formbox,.checkout .summary{padding:18px}.checkout h2{font-size:20px}.field input,.field select,.field textarea{font-size:16px}}
+
+.cart-notification{position:fixed;bottom:24px;inset-inline:16px;z-index:1000;display:flex;justify-content:center;pointer-events:none}
+.cart-notification-body{pointer-events:auto;display:flex;align-items:center;gap:20px;background:#243d32;color:#fff;padding:16px 20px;border-radius:14px;box-shadow:0 8px 28px #0003;max-width:480px}
+.cart-notification-body button{background:transparent;color:inherit;border:0;font-size:24px;cursor:pointer;padding:4px 8px}
