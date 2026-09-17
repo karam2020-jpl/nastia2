@@ -8,15 +8,15 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { initialDelivery, initialProducts, Product } from './data';
-import {addCartLine,CartItem,changeCartLine,readCartStorage,reconcileCart,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from './store-utils';
+import { Product } from './data';
+import {addCartQuantity,CartItem,changeCartLine,readCartStorage,reconcileCart,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from './store-utils';
 export {cartLineKey,parseStoredCart} from './store-utils';
 
 type Store = {
   items: CartItem[];
   products: Product[];
   deliveryFees: Record<string, number>;
-  add: (product: Product, shade?: string, size?: string) => void;
+  add: (product: Product, shade?: string, size?: string, quantity?:number) => {added:number;error?:string};
   change: (lineKey: string, quantity: number) => void;
   remove: (lineKey: string) => void;
   clear: () => void;
@@ -24,17 +24,19 @@ type Store = {
   deleteProduct: (id: string) => void;
   setDeliveryFee: (province: string, fee: number) => void;
   refreshCatalog: () => Promise<void>;
+  catalogStatus: 'loading'|'ready'|'error';
 };
 
 const StoreContext = createContext<Store | null>(null);
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [deliveryFees, setDeliveryFees] = useState(initialDelivery);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [deliveryFees, setDeliveryFees] = useState<Record<string,number>>({});
   const [cartLoaded, setCartLoaded] = useState(false);
+  const [catalogStatus,setCatalogStatus]=useState<'loading'|'ready'|'error'>('loading');
 
-  const refreshCatalog=useCallback(async()=>{const response=await fetch('/api/catalog');if(!response.ok)throw new Error('catalog');const catalog=await response.json() as {products:Product[];deliveryFees:Record<string,number>};setProducts(catalog.products);setDeliveryFees(catalog.deliveryFees);setItems((current)=>reconcileCart(current,catalog.products))},[]);
+  const refreshCatalog=useCallback(async()=>{setCatalogStatus('loading');try{const response=await fetch('/api/catalog');if(!response.ok)throw new Error('catalog');const catalog=await response.json() as {products:Product[];deliveryFees:Record<string,number>};setProducts(catalog.products);setDeliveryFees(catalog.deliveryFees);setItems((current)=>reconcileCart(current,catalog.products));setCatalogStatus('ready')}catch(error){setCatalogStatus('error');throw error}},[]);
 
   useEffect(() => {
     setItems(readCartStorage(window.localStorage));
@@ -47,10 +49,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     writeCartStorage(window.localStorage,items);
   }, [items, cartLoaded]);
 
-  const add = useCallback((product: Product, shade = product.shades[0], size = product.sizes[0]) => {
-    if (!shade || !size || product.stock < 1) return;
-    setItems((current) => addCartLine(current,product,shade,size));
-  }, []);
+  const add = useCallback((product: Product, shade = product.shades[0], size = product.sizes[0],quantity=1) => {const result=addCartQuantity(items,product,shade,size,quantity);if(result.added)setItems(result.items);return {added:result.added,error:result.error}}, [items]);
 
   const change = useCallback((lineKey: string, quantity: number) => {
     setItems((current) => changeCartLine(current,lineKey,quantity));
@@ -88,8 +87,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       setDeliveryFee: (province, fee) =>
         setDeliveryFees((current) => updateDeliveryFee(current,province,fee)),
       refreshCatalog,
+      catalogStatus,
     }),
-    [items, products, deliveryFees, add, change, remove, saveProduct, deleteProduct, refreshCatalog],
+    [items, products, deliveryFees, add, change, remove, saveProduct, deleteProduct, refreshCatalog,catalogStatus],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

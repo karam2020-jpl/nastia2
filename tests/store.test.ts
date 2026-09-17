@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {addCartLine,cartLineKey,changeCartLine,cleanProductOptions,parseStoredCart,productQuantityInCart,readCartStorage,reconcileCart,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from '../app/store-utils.ts';
+import {addCartLine,addCartQuantity,cartLineKey,changeCartLine,cleanProductOptions,parseStoredCart,productQuantityInCart,readCartStorage,reconcileCart,removeCartLine,sanitizeProduct,updateDeliveryFee,writeCartStorage} from '../app/store-utils.ts';
 
 const product={id:'lipstick',name:'Rouge',brand:'Dior',category:'المكياج',price:54000,description:'test',shades:['وردي','أحمر'],sizes:['3.5 غم'],stock:5,color:'#fff'};
 const variants=[{product,qty:1,shade:'وردي',size:'3.5 غم'},{product,qty:2,shade:'أحمر',size:'3.5 غم'}];
@@ -48,3 +48,5 @@ test('product options are cleaned and empty option lists are detectable',()=>{
  assert.deepEqual(cleanProductOptions(['  وردي  ','', '   ']),['وردي']);
  assert.equal(cleanProductOptions(['', '   ']).length,0);
 });
+
+test('requested quantity is added atomically and reports the stock limit',()=>{const full=[{...variants[0],qty:4}];const rejected=addCartQuantity(full,product,'أحمر','3.5 غم',2);assert.strictEqual(rejected.items,full);assert.equal(rejected.added,0);assert.match(rejected.error||'',/المتوفر/);const accepted=addCartQuantity([],product,'أحمر','3.5 غم',5);assert.equal(accepted.added,5);assert.equal(productQuantityInCart(accepted.items,product.id),5)});

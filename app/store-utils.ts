@@ -37,6 +37,7 @@ export const addCartLine = (items: CartItem[], product: Product, shade: string, 
   const existing=items.some((item)=>cartLineKey(item.product.id,item.shade,item.size)===key);
   return existing?items.map((item)=>cartLineKey(item.product.id,item.shade,item.size)===key?{...item,product,qty:item.qty+1}:item):[...items,{product,shade,size,qty:1}];
 };
+export const addCartQuantity=(items:CartItem[],product:Product,shade:string,size:string,quantity:number):{items:CartItem[];added:number;error?:string}=>{const requested=Math.max(0,Math.trunc(quantity));const available=product.stock-productQuantityInCart(items,product.id);if(!shade||!size||requested<1)return {items,added:0,error:'اختاري الدرجة والحجم والكمية.'};if(available<requested)return {items,added:0,error:`المتوفر حاليًا ${Math.max(0,available)} فقط من هذا المنتج.`};let next=items;for(let index=0;index<requested;index++)next=addCartLine(next,product,shade,size);return {items:next,added:requested}};
 export const changeCartLine = (items: CartItem[], lineKey: string, quantity: number) => {
   const target=items.find((item)=>cartLineKey(item.product.id,item.shade,item.size)===lineKey);
   if (!target)return items;

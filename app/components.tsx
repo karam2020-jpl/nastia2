@@ -82,7 +82,7 @@ export function Footer() {
 
 export function ProductCard({ p }: { p: Product }) {
   const { add } = useStore();
-  const [added,setAdded]=useState(false);
+  const [message,setMessage]=useState('');
   return (
     <article className="card">
       <Link href={`/products/${p.id}`}><div className="product-art" style={{ '--c': p.color } as React.CSSProperties}><span /></div></Link>
@@ -90,10 +90,10 @@ export function ProductCard({ p }: { p: Product }) {
         <span className="brand">{p.brand}</span>
         <Link href={`/products/${p.id}`}><h3>{p.name}</h3></Link>
         <span className="price">{money(p.price)}</span>
-        <button className="btn" onClick={() => {add(p);setAdded(true)}} disabled={p.stock === 0}>
+        <button className="btn" onClick={() => {const result=add(p);setMessage(result.added?'تمت الإضافة إلى السلة':result.error||'تعذرت الإضافة')}} disabled={p.stock === 0}>
           <ShoppingBag size={16} /> {p.stock ? 'أضيفي للسلة' : 'نفد المخزون'}
         </button>
-        {added&&<small className="added-message" role="status">تمت الإضافة إلى السلة</small>}
+        {message&&<small className="added-message" role="status">{message}</small>}
       </div>
     </article>
   );
