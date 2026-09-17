@@ -1,0 +1,2 @@
+import {NextResponse} from 'next/server';import {createSession,validCredentials} from '../../../lib/auth';
+export async function POST(request:Request){const {username,password}=await request.json();if(!validCredentials(String(username||''),String(password||'')))return NextResponse.json({error:'بيانات الدخول غير صحيحة أو لم تُضبط متغيرات البيئة.'},{status:401});await createSession();return NextResponse.json({ok:true})}
