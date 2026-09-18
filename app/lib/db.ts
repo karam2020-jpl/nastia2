@@ -9,6 +9,7 @@ import {seedDatabaseOnce} from '../seed-database';
 const path=resolve(process.env.DATABASE_PATH||'./data/nastia.sqlite');
 mkdirSync(dirname(path),{recursive:true});
 const db=new DatabaseSync(path);
+db.exec('PRAGMA busy_timeout=15000;');
 db.exec(sqliteSchema);
 seedDatabaseOnce(db,initialProducts,initialDelivery);
 
