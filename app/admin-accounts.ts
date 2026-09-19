@@ -3,9 +3,22 @@ import type {DatabaseSync} from 'node:sqlite';
 import {isRole, type AdminRole, type AdminUser} from './admin-permissions.ts';
 export class AccountError extends Error { status:number; constructor(message:string, status=400){super(message);this.status=status;} }
 export function ensureAccounts(db:DatabaseSync) {
+  // Rebuild the old CHECK constraint once, preserving user IDs and sessions.
+  const old=db.prepare("SELECT sql FROM sqlite_master WHERE name='admin_users'").get();
+  if(old&&!String(old.sql).includes("'support'")){
+    db.exec('PRAGMA foreign_keys=OFF');
+    try{transaction(db,()=>{
+      const current=db.prepare("SELECT sql FROM sqlite_master WHERE name='admin_users'").get();
+      if(String(current?.sql).includes("'support'"))return;
+      db.exec(`CREATE TABLE admin_users_upgrade (id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT NOT NULL UNIQUE COLLATE NOCASE,name TEXT NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL CHECK(role IN ('owner','orders','products','content','support')),active INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+      INSERT INTO admin_users_upgrade SELECT * FROM admin_users;
+      DROP TABLE admin_users; ALTER TABLE admin_users_upgrade RENAME TO admin_users;`);
+    });}finally{db.exec('PRAGMA foreign_keys=ON');}
+  }
+
   db.exec(`CREATE TABLE IF NOT EXISTS admin_users (
     id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    name TEXT NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('owner','orders','products','content')),
+    name TEXT NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('owner','orders','products','content','support')),
     active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
   CREATE TABLE IF NOT EXISTS admin_sessions (
     token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES admin_users(id), expires_at INTEGER NOT NULL);

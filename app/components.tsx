@@ -39,6 +39,7 @@ export function Header() {
             <input name="q" value={searchQuery} onChange={(event)=>setSearchQuery(event.target.value)} aria-label="البحث" placeholder="ابحثي عن منتج أو ماركة" />
           </form>
           <nav className="nav" aria-label="التنقل الرئيسي">
+            <Link className="desktop-link" href="/support">الدعم والشكاوى</Link>
             <Link className="desktop-link" href="/products">المنتجات</Link>
             <Link aria-label="السلة" className="cart-pill" href="/cart">
               <ShoppingBag />
@@ -61,6 +62,7 @@ export function Header() {
           <nav id="mobile-menu" className="mobile-menu" aria-label="قائمة الهاتف">
             <Link href="/" onClick={() => setMenuOpen(false)}>الرئيسية</Link>
             <Link href="/products" onClick={() => setMenuOpen(false)}>المنتجات</Link>
+            <Link href="/support" onClick={() => setMenuOpen(false)}>الدعم والشكاوى</Link>
             <Link href="/cart" onClick={() => setMenuOpen(false)}>السلة</Link>
           </nav>
         )}
@@ -74,7 +76,7 @@ export function Footer() {
     <footer className="footer">
       <div className="container">
         <div><div className="logo" style={{ color: 'white' }}>Nastia Beauty</div><p>اختيارات عالمية للجمال، بواجهة عراقية أنيقة.</p></div>
-        <div><b>التوصيل</b><p>التوصيل إلى جميع محافظات العراق</p><p>يُحفظ طلبك بأمان بعد التحقق من المخزون والتوصيل.</p></div>
+        <div><Link href="/support">الدعم والشكاوى</Link></div><div><b>التوصيل</b><p>التوصيل إلى جميع محافظات العراق</p><p>يُحفظ طلبك بأمان بعد التحقق من المخزون والتوصيل.</p></div>
       </div>
     </footer>
   );

@@ -1,0 +1,11 @@
+import {NextResponse} from 'next/server';
+import {db} from '../../../lib/support';
+import {adminRoute,jsonBody} from '../../../lib/admin-api';
+import {audited} from '../../../lib/auth';
+import {AccountError} from '../../../admin-accounts';
+import {ticket,reply,supportStatuses} from '../../../support-store';
+export const GET=adminRoute('support',(request)=>{const id=new URL(request.url).searchParams.get('id');return NextResponse.json(id?ticket(db,id):db.prepare('SELECT id,name,category,status,created_at FROM support_tickets ORDER BY created_at DESC,rowid DESC LIMIT 200').all());});
+export const PATCH=adminRoute('support',async(request,user)=>{const input=await jsonBody(request);if(typeof input.id!=='string')throw new AccountError('رقم الطلب مطلوب.');const id=input.id;
+ if(input.status!==undefined&&!supportStatuses.includes(input.status as typeof supportStatuses[number]))throw new AccountError('حالة غير صالحة.');
+ if(input.status===undefined&&input.body===undefined)throw new AccountError('أدخل رداً أو اختر حالة.');
+ audited(user,'support','تحديث طلب دعم',id,()=>{ticket(db,id);if(input.body!==undefined)reply(db,id,'الدعم',input.body);if(input.status!==undefined)db.prepare('UPDATE support_tickets SET status=? WHERE id=?').run(String(input.status),id);});return NextResponse.json(ticket(db,id));});

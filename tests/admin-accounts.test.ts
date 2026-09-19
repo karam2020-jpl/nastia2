@@ -8,8 +8,8 @@ import {ensureAccounts,bootstrapOwner,authenticate,sessionUser,createAccount,upd
 import {can} from '../app/admin-permissions.ts';
 const password='test-only-strong-password';
 test('role matrix excludes customer information and account management from other staff',()=>{
-  for(const role of ['owner','orders','products','content'] as const)
-    for(const permission of ['orders','products','content','delivery','users','audit'] as const)
+  for(const role of ['owner','orders','products','content','support'] as const)
+    for(const permission of ['orders','products','content','delivery','users','audit','support'] as const)
       assert.equal(can(role,permission),role==='owner'||role===permission);
 });
 test('accounts persist, environment bootstrap cannot override them, role/password/disable revoke sessions',async()=>{
