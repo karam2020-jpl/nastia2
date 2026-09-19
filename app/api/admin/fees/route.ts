@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server';import {isAdmin} from '../../../lib/auth';import {getFees,setFee} from '../../../lib/db';import {provinces} from '../../../data';
+export async function GET(){if(!await isAdmin())return NextResponse.json({error:'غير مصرح'},{status:401});return NextResponse.json(getFees())}
+export async function POST(request:Request){if(!await isAdmin())return NextResponse.json({error:'غير مصرح'},{status:401});const {province,fee}=await request.json();if(!provinces.includes(province)||!Number.isInteger(fee)||fee<0)return NextResponse.json({error:'قيمة غير صالحة'},{status:400});setFee(province,fee);return NextResponse.json({ok:true})}

@@ -1,0 +1,4 @@
+import {NextResponse} from 'next/server';import {isAdmin} from '../../../lib/auth';import {db} from '../../../lib/db';
+const statuses=['جديد','مؤكد','قيد التجهيز','شُحن','مكتمل','ملغي','مرتجع'];
+export async function GET(){if(!await isAdmin())return NextResponse.json({error:'غير مصرح'},{status:401});const orders=db.prepare('SELECT * FROM orders ORDER BY id DESC').all() as Record<string,unknown>[];const itemQuery=db.prepare('SELECT * FROM order_items WHERE order_id=?');return NextResponse.json(orders.map((order)=>({...order,lines:itemQuery.all(order.id as number)})))}
+export async function PATCH(request:Request){if(!await isAdmin())return NextResponse.json({error:'غير مصرح'},{status:401});const {id,status}=await request.json();if(!Number.isInteger(id)||!statuses.includes(status))return NextResponse.json({error:'قيمة غير صالحة'},{status:400});db.prepare('UPDATE orders SET status=? WHERE id=?').run(status,id);return NextResponse.json({ok:true})}
