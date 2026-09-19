@@ -1,11 +1,13 @@
 'use client';
 import {useEffect,useState,type FormEvent} from 'react';
-import {categories,type Product} from '../data';
+import {type Product} from '../data';
 import {MAX_IMAGE_BYTES} from '../banner-settings';
+import {useStore} from '../providers';
 import {adminRequest} from './request';
 type ImageItem={id?:string;url?:string;file?:File;key:string};
 export default function ProductEditor({product,onClose,onSaved}:{product:Product;onClose:()=>void;onSaved:()=>Promise<void>}){
-  const [draft,setDraft]=useState(product),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const {categories}=useStore();
+  const [draft,setDraft]=useState({...product,category:product.category||categories[0]||''}),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [images,setImages]=useState<ImageItem[]>((product.images||[]).map(i=>({...i,key:i.id})));
   const [previews,setPreviews]=useState<Record<string,string>>({});
   useEffect(()=>{const result:Record<string,string>={};const temporary:string[]=[];images.forEach(i=>{if(i.file){const url=URL.createObjectURL(i.file);result[i.key]=url;temporary.push(url);}else result[i.key]=i.url!;});setPreviews(result);return()=>temporary.forEach(url=>URL.revokeObjectURL(url));},[images]);
@@ -17,7 +19,7 @@ export default function ProductEditor({product,onClose,onSaved}:{product:Product
   return <div className="modal-backdrop"><form className="modal" onSubmit={submit}><div className="title-row"><h2>بيانات المنتج</h2><button className="choice" type="button" disabled={busy} onClick={onClose}>إغلاق</button></div>
     <fieldset className="banner-fields formgrid" disabled={busy}>
       {(['name','brand'] as const).map(key=><label className="field" key={key}>{key==='name'?'الاسم':'الماركة'}<input required maxLength={key==='name'?200:100} value={draft[key]} onChange={e=>setDraft({...draft,[key]:e.target.value})}/></label>)}
-      <label className="field">الفئة<select value={draft.category} onChange={e=>setDraft({...draft,category:e.target.value})}>{categories.map(c=><option key={c}>{c}</option>)}</select></label>
+      <label className="field">الفئة<select required value={draft.category} onChange={e=>setDraft({...draft,category:e.target.value})}><option value="" disabled>اختر القسم</option>{categories.map(c=><option key={c}>{c}</option>)}</select></label>
       <label className="field">السعر<input type="number" min="0" step="1" required value={draft.price} onChange={e=>setDraft({...draft,price:Number(e.target.value)})}/></label>
       <label className="field">الدرجات — افصل بفاصلة<input required value={draft.shades.join('،')} onChange={e=>setDraft({...draft,shades:e.target.value.split(/[،,]/)})}/></label>
       <label className="field">الأحجام — افصل بفاصلة<input required value={draft.sizes.join('،')} onChange={e=>setDraft({...draft,sizes:e.target.value.split(/[،,]/)})}/></label>

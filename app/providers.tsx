@@ -15,6 +15,7 @@ export {cartLineKey,parseStoredCart} from './store-utils';
 type Store = {
   items: CartItem[];
   products: Product[];
+  categories: string[];
   deliveryFees: Record<string, number>;
   add: (product: Product, shade?: string, size?: string, quantity?:number) => {added:number;error?:string};
   change: (lineKey: string, quantity: number) => void;
@@ -31,12 +32,13 @@ const StoreContext = createContext<Store | null>(null);
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [categories,setCategories]=useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [deliveryFees, setDeliveryFees] = useState<Record<string,number>>({});
   const [cartLoaded, setCartLoaded] = useState(false);
   const [catalogStatus,setCatalogStatus]=useState<'loading'|'ready'|'error'>('loading');
 
-  const refreshCatalog=useCallback(async()=>{setCatalogStatus('loading');try{const response=await fetch('/api/catalog');if(!response.ok)throw new Error('catalog');const catalog=await response.json() as {products:Product[];deliveryFees:Record<string,number>};setProducts(catalog.products);setDeliveryFees(catalog.deliveryFees);setItems((current)=>reconcileCart(current,catalog.products));setCatalogStatus('ready')}catch(error){setCatalogStatus('error');throw error}},[]);
+  const refreshCatalog=useCallback(async()=>{setCatalogStatus('loading');try{const response=await fetch('/api/catalog');if(!response.ok)throw new Error('catalog');const catalog=await response.json() as {products:Product[];categories:string[];deliveryFees:Record<string,number>};setProducts(catalog.products);setCategories(catalog.categories);setDeliveryFees(catalog.deliveryFees);setItems((current)=>reconcileCart(current,catalog.products));setCatalogStatus('ready')}catch(error){setCatalogStatus('error');throw error}},[]);
 
   useEffect(() => {
     setItems(readCartStorage(window.localStorage));
@@ -77,6 +79,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     () => ({
       items,
       products,
+      categories,
       deliveryFees,
       add,
       change,
@@ -89,7 +92,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       refreshCatalog,
       catalogStatus,
     }),
-    [items, products, deliveryFees, add, change, remove, saveProduct, deleteProduct, refreshCatalog,catalogStatus],
+    [items, products, categories, deliveryFees, add, change, remove, saveProduct, deleteProduct, refreshCatalog,catalogStatus],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
@@ -102,3 +105,4 @@ export const useStore = () => {
 };
 
 export const useCart = useStore;
+
