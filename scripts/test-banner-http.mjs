@@ -25,7 +25,7 @@ try {
   assert.ok(ready,'Server did not start: '+logs);
   assert.equal((await fetch(base+'/api/admin/banner')).status,401);
   assert.equal((await fetch(base+'/api/admin/banner',{method:'POST'})).status,401);
-  const login = await fetch(base+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'banner-test',password})});
+  const login = await fetch(base+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({username:'banner-test',password})});
   assert.equal(login.status,200);
   const cookie = login.headers.get('set-cookie').split(';')[0];
   const headers = {Cookie:cookie,Origin:base};

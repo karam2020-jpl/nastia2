@@ -1,4 +1,4 @@
-export type Product={id:string;name:string;brand:string;category:string;price:number;description:string;shades:string[];sizes:string[];stock:number;color:string};
+export type Product={images?:{id:string;url:string}[];id:string;name:string;brand:string;category:string;price:number;description:string;shades:string[];sizes:string[];stock:number;color:string};
 export const initialProducts:Product[]=[
  {id:'serum',name:'سيروم Advanced Night Repair',brand:'Estée Lauder',category:'العناية بالبشرة',price:79000,description:'سيروم خفيف للعناية بمظهر البشرة وترطيبها ضمن روتينك اليومي.',shades:['شفاف'],sizes:['30 مل','50 مل'],stock:12,color:'#ead5c6'},
  {id:'cream',name:'كريم Moisture Surge',brand:'Clinique',category:'العناية بالبشرة',price:62000,description:'مرطب بقوام جل يمنح البشرة إحساساً منعشاً وناعماً.',shades:['شفاف'],sizes:['30 مل','50 مل'],stock:8,color:'#d5e8df'},
@@ -11,3 +11,4 @@ export const categories=['العناية بالبشرة','المكياج','ال�
 export const provinces=['بغداد','البصرة','أربيل','النجف','كربلاء','نينوى'];
 export const initialDelivery:Record<string,number>={بغداد:5000,البصرة:8000,أربيل:8000,النجف:7000,كربلاء:7000,نينوى:9000};
 export const money=(n:number)=>new Intl.NumberFormat('ar-IQ').format(n)+' د.ع';
+

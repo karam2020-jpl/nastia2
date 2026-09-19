@@ -18,7 +18,7 @@ export function readBanner(db: DatabaseSync): BannerSettings {
     mobileImage: row.has_mobile ? `/api/banner/image/mobile?v=${row.version}` : '',
   };
 }
-export function saveBanner(db: DatabaseSync, settings: BannerSettings, images: Record<BannerSlot, BannerImage | null | undefined>) {
+export function saveBanner(db: DatabaseSync, settings: BannerSettings, images: Record<BannerSlot, BannerImage | null | undefined>, onSaved?: () => void) {
   db.exec('BEGIN IMMEDIATE');
   try {
     const old = db.prepare('SELECT * FROM homepage_banner WHERE id=1').get();
@@ -31,6 +31,7 @@ export function saveBanner(db: DatabaseSync, settings: BannerSettings, images: R
       settings=excluded.settings, desktop=excluded.desktop, desktop_mime=excluded.desktop_mime,
       mobile=excluded.mobile, mobile_mime=excluded.mobile_mime, version=excluded.version`)
       .run(JSON.stringify(text), desktop.bytes, desktop.mime, mobile.bytes, mobile.mime, randomUUID());
+    onSaved?.();
     db.exec('COMMIT');
     return readBanner(db);
   } catch (error) { db.exec('ROLLBACK'); throw error; }

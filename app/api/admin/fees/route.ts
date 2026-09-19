@@ -1,3 +1,12 @@
-import {NextResponse} from 'next/server';import {isAdmin} from '../../../lib/auth';import {getFees,setFee} from '../../../lib/db';import {provinces} from '../../../data';
-export async function GET(){if(!await isAdmin())return NextResponse.json({error:'غير مصرح'},{status:401});return NextResponse.json(getFees())}
-export async function POST(request:Request){if(!await isAdmin())return NextResponse.json({error:'غير مصرح'},{status:401});const {province,fee}=await request.json();if(!provinces.includes(province)||!Number.isInteger(fee)||fee<0)return NextResponse.json({error:'قيمة غير صالحة'},{status:400});setFee(province,fee);return NextResponse.json({ok:true})}
+import {NextResponse} from 'next/server';
+import {getFees,setFee} from '../../../lib/db';
+import {audited} from '../../../lib/auth';
+import {adminRoute,jsonBody} from '../../../lib/admin-api';
+import {AccountError} from '../../../admin-accounts';
+import {provinces} from '../../../data';
+export const GET=adminRoute('delivery',()=>NextResponse.json(getFees()));
+export const POST=adminRoute('delivery',async(request,user)=>{
+  const {province,fee}=await jsonBody(request);
+  if(typeof province!=='string'||!provinces.includes(province)||!Number.isSafeInteger(fee)||Number(fee)<0)throw new AccountError('قيمة غير صالحة.');
+  audited(user,'delivery','تغيير رسوم التوصيل',province,()=>setFee(province,Number(fee)),String(fee));return NextResponse.json({ok:true});
+});

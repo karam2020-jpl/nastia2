@@ -1,4 +1,16 @@
-import {NextResponse} from 'next/server';import {isAdmin} from '../../../lib/auth';import {db} from '../../../lib/db';
+import {NextResponse} from 'next/server';
+import {db} from '../../../lib/db';
+import {audited} from '../../../lib/auth';
+import {adminRoute,jsonBody} from '../../../lib/admin-api';
+import {AccountError} from '../../../admin-accounts';
 const statuses=['جديد','مؤكد','قيد التجهيز','شُحن','مكتمل','ملغي','مرتجع'];
-export async function GET(){if(!await isAdmin())return NextResponse.json({error:'غير مصرح'},{status:401});const orders=db.prepare('SELECT * FROM orders ORDER BY id DESC').all() as Record<string,unknown>[];const itemQuery=db.prepare('SELECT * FROM order_items WHERE order_id=?');return NextResponse.json(orders.map((order)=>({...order,lines:itemQuery.all(order.id as number)})))}
-export async function PATCH(request:Request){if(!await isAdmin())return NextResponse.json({error:'غير مصرح'},{status:401});const {id,status}=await request.json();if(!Number.isInteger(id)||!statuses.includes(status))return NextResponse.json({error:'قيمة غير صالحة'},{status:400});db.prepare('UPDATE orders SET status=? WHERE id=?').run(status,id);return NextResponse.json({ok:true})}
+export const GET=adminRoute('orders',()=>{const orders=db.prepare('SELECT * FROM orders ORDER BY id DESC').all();const lines=db.prepare('SELECT * FROM order_items WHERE order_id=?');return NextResponse.json(orders.map(o=>({...o,lines:lines.all(o.id as number)})));});
+export const PATCH=adminRoute('orders',async(request,user)=>{
+  const {id,status}=await jsonBody(request);
+  if(!Number.isSafeInteger(id)||typeof status!=='string'||!statuses.includes(status))throw new AccountError('قيمة غير صالحة.');
+  audited(user,'orders','تغيير حالة الطلب',String(id),()=>{
+    const old=db.prepare('SELECT status FROM orders WHERE id=?').get(Number(id));if(!old)throw new AccountError('الطلب غير موجود.',404);
+    db.prepare('UPDATE orders SET status=? WHERE id=?').run(status,Number(id));
+  },status);
+  return NextResponse.json({ok:true});
+});

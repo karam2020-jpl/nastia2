@@ -85,7 +85,7 @@ export function ProductCard({ p }: { p: Product }) {
   const [message,setMessage]=useState('');
   return (
     <article className="card">
-      <Link href={`/products/${p.id}`}><div className="product-art" style={{ '--c': p.color } as React.CSSProperties}><span /></div></Link>
+      <Link href={`/products/${p.id}`}><div className="product-art" style={{ '--c': p.color } as React.CSSProperties}>{p.images?.[0] ? <img className="product-cover" src={p.images[0].url} alt={p.name} loading="lazy"/> : <span />}</div></Link>
       <div className="cardbody">
         <span className="brand">{p.brand}</span>
         <Link href={`/products/${p.id}`}><h3>{p.name}</h3></Link>
@@ -115,3 +115,4 @@ export function Remove({ productId, shade, size }: { productId: string; shade: s
   const { remove } = useStore();
   return <button type="button" aria-label="حذف هذا الخيار من السلة" onClick={() => remove(cartLineKey(productId, shade, size))} className="choice"><Trash2 size={16} /></button>;
 }
+
