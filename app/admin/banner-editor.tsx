@@ -60,13 +60,9 @@ function SlideEditor({slide}:{slide:number}) {
     <p>عدّل النص والصور ثم اضغط حفظ. لن تُنشر المعاينة قبل الحفظ.</p>
     <form onSubmit={save}>
       <fieldset disabled={busy} className="formgrid banner-fields">
-        <label className="field wide">العنوان<textarea required maxLength={120} value={settings.title} onChange={e => setSettings({...settings,title:e.target.value})}/></label>
-        <label className="field wide">النص الوصفي<textarea maxLength={300} value={settings.subtitle} onChange={e => setSettings({...settings,subtitle:e.target.value})}/></label>
-        <label className="field">نص الزر<input required maxLength={40} value={settings.buttonText} onChange={e => setSettings({...settings,buttonText:e.target.value})}/></label>
-        <label className="field">رابط الزر داخل الموقع<input required dir="ltr" maxLength={500} value={settings.buttonHref} onChange={e => setSettings({...settings,buttonHref:e.target.value})}/><small>مثال: /products</small></label>
-        <label className="field wide">وصف الصورة لقارئات الشاشة<input required maxLength={180} value={settings.imageAlt} onChange={e => setSettings({...settings,imageAlt:e.target.value})}/></label>
-        {(['desktop','mobile'] as const).map(slot => <div className="field" key={slot}>
-          <label htmlFor={`banner-${slot}`}>{slot === 'desktop' ? 'صورة الحاسوب — 1920 × 800' : 'صورة الهاتف — 1080 × 1350'}</label>
+<h3 className="wide">رفع صور البانر</h3>
+        {(['desktop','mobile'] as const).map(slot => <div className="field upload-box" key={slot}>
+          <label className="btn upload-label" htmlFor={`banner-${slot}`}>رفع {slot === 'desktop' ? 'صورة الحاسوب — 1920 × 800' : 'صورة الهاتف — 1080 × 1350'}</label>
           <input id={`banner-${slot}`} key={`${slot}-${inputKey}`} type="file" accept="image/jpeg,image/png,image/webp" onChange={e => {
             const file = e.target.files?.[0]; if (!file) return;
             if (file.size > MAX_IMAGE_BYTES || !['image/jpeg','image/png','image/webp'].includes(file.type)) {
@@ -82,6 +78,11 @@ function SlideEditor({slide}:{slide:number}) {
             }}>إزالة الصورة عند الحفظ</button>
           </>}
         </div>)}
+        <label className="field wide">العنوان<textarea required maxLength={120} value={settings.title} onChange={e => setSettings({...settings,title:e.target.value})}/></label>
+        <label className="field wide">النص الوصفي<textarea maxLength={300} value={settings.subtitle} onChange={e => setSettings({...settings,subtitle:e.target.value})}/></label>
+        <label className="field">نص الزر<input required maxLength={40} value={settings.buttonText} onChange={e => setSettings({...settings,buttonText:e.target.value})}/></label>
+        <label className="field">رابط الزر داخل الموقع<input required dir="ltr" maxLength={500} value={settings.buttonHref} onChange={e => setSettings({...settings,buttonHref:e.target.value})}/><small>مثال: /products</small></label>
+        <label className="field wide">وصف الصورة لقارئات الشاشة<input required maxLength={180} value={settings.imageAlt} onChange={e => setSettings({...settings,imageAlt:e.target.value})}/></label>
         <p className="muted wide">عند عدم رفع صورة للهاتف تُستخدم صورة الحاسوب. إزالة الصورتين تعيد الرسم الافتراضي. اترك مساحة للنص يمين صورة الحاسوب وأسفل صورة الهاتف.</p>
         <button className="btn wide" type="submit">{busy ? 'جارٍ الحفظ…' : 'حفظ إعدادات الصفحة الرئيسية'}</button>
       </fieldset>

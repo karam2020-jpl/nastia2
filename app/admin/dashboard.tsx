@@ -16,7 +16,7 @@ const statuses=['جديد','مؤكد','قيد التجهيز','شُحن','مكت
 const blank=():Product=>({id:`product-${crypto.randomUUID()}`,name:'',brand:'',category:'',price:0,description:'',shades:[''],sizes:[''],stock:0,color:'#eaf3ef',images:[]});
 export default function AdminDashboard({user}:{user:AdminUser}){
   const router=useRouter();const {refreshCatalog}=useStore();
-  const tabs:[string,string,Permission|null][]=[['overview','نظرة عامة',null],['products','المنتجات','products'],['orders','الطلبات','orders'],['delivery','التوصيل','delivery'],['banner','إعدادات الصفحة الرئيسية','content'],['categories','الأقسام','categories'],['support','الدعم والشكاوى','support'],['users','حسابات الفريق','users'],['audit','سجل التعديلات','audit']];
+  const tabs:[string,string,Permission|null][]=[['overview','نظرة عامة',null],['products','المنتجات','products'],['orders','الطلبات','orders'],['delivery','التوصيل','delivery'],['banner','البانرات وصور الواجهة','content'],['categories','الأقسام','categories'],['support','الدعم والشكاوى','support'],['users','حسابات الفريق','users'],['audit','سجل التعديلات','audit']];
   const allowed=tabs.filter(([, ,permission])=>permission?can(user.role,permission):user.role==='owner');
   const [tab,setTab]=useState(allowed[0][0]),[products,setProducts]=useState<Product[]>([]),[orders,setOrders]=useState<Order[]>([]),[fees,setFees]=useState<Record<string,number>>({}),[audit,setAudit]=useState<Audit[]>([]);
   const [editing,setEditing]=useState<Product|null>(null),[selected,setSelected]=useState<Order|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false);
