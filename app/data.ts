@@ -8,7 +8,7 @@ export const initialProducts:Product[]=[
  {id:'hair',name:'زيت Elixir Ultime',brand:'Kérastase',category:'العناية بالشعر',price:68000,description:'زيت لطيف يمنح الشعر مظهراً لامعاً وملمساً ناعماً.',shades:['شفاف'],sizes:['75 مل'],stock:3,color:'#e8dfc8'},
 ];
 export const categories=['العناية بالبشرة','المكياج','العطور','العناية بالشعر'];
-export const provinces=['بغداد','البصرة','أربيل','النجف','كربلاء','نينوى'];
+export const provinces=['بغداد','البصرة','نينوى','أربيل','النجف','كربلاء','الأنبار','بابل','دهوك','ديالى','ذي قار','السليمانية','صلاح الدين','القادسية','كركوك','المثنى','ميسان','واسط'];
 export const initialDelivery:Record<string,number>={بغداد:5000,البصرة:8000,أربيل:8000,النجف:7000,كربلاء:7000,نينوى:9000};
 export const money=(n:number)=>new Intl.NumberFormat('ar-IQ').format(n)+' د.ع';
 
