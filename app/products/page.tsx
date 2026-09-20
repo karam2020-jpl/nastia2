@@ -9,11 +9,13 @@ function Results(){
   const params=useSearchParams();
   const {products,categories,catalogStatus,refreshCatalog}=useStore();
   const [q,setQ]=useState(params.get('q')||'');
-  const [brand,setBrand]=useState('');
+  const [brand,setBrand]=useState(params.get('brand')||'');
   const [category,setCategory]=useState(params.get('category')||'');
   const [max,setMax]=useState<number|null>(null);
   const [sort,setSort]=useState('featured');
   const [position,setPosition]=useState({key:'',page:1});
+  const parameterBrand=params.get('brand')||'';
+  useEffect(()=>setBrand(parameterBrand),[parameterBrand]);
   const parameterCategory=params.get('category')||'';
   useEffect(()=>setCategory(parameterCategory),[parameterCategory]);
   const parameterQuery=params.get('q')||'';
