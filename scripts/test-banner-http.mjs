@@ -42,6 +42,14 @@ try {
   f=form();f.set('desktopFile',new Blob(['<svg/>'],{type:'image/png'}),'fake.png');assert.equal((await fetch(base+'/api/admin/banner',{method:'POST',headers,body:f})).status,400);
   assert.equal((await (await fetch(base+'/api/admin/banner',{headers})).json()).title,'HTTP banner test');
   f=form();f.set('remove_desktop','true');const removed=await (await fetch(base+'/api/admin/banner',{method:'POST',headers,body:f})).json();assert.equal(removed.desktopImage,'');assert.ok(removed.mobileImage);
+  f=form();f.set('title','Second slide');f.set('desktopFile',new Blob([png],{type:'image/png'}),'second.png');
+  const second=await fetch(base+'/api/admin/banner?slide=2',{method:'POST',headers,body:f});assert.equal(second.status,200);const secondData=await second.json();assert.ok(secondData.desktopImage.includes('slide=2'));assert.equal((await fetch(base+secondData.desktopImage)).status,200);
+  assert.equal((await (await fetch(base+'/api/admin/banner',{headers})).json()).desktopImage,'');
+  assert.equal((await fetch(base+'/api/admin/banner?slide=4',{headers})).status,400);
+  assert.equal((await fetch(base+'/api/admin/banner?slide=1',{method:'DELETE',headers})).status,400);
+  assert.equal((await fetch(base+'/api/admin/banner?slide=2',{method:'DELETE',headers})).status,200);
+  assert.equal((await fetch(base+secondData.desktopImage)).status,404);
+  console.log('PASS: independent carousel slide upload, image routing, deletion and primary preservation');
   console.log('PASS: admin auth, same-origin protection, upload/read, live homepage, invalid input atomicity, image removal');
 } finally {
   if (child.exitCode === null && child.signalCode === null) {

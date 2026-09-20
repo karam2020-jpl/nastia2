@@ -4,7 +4,8 @@ import {useRouter} from 'next/navigation';
 import BannerView from '../banner-view';
 import {defaultBanner, MAX_IMAGE_BYTES, validateBanner, type BannerSettings} from '../banner-settings';
 type Slot = 'desktop' | 'mobile';
-export default function BannerEditor() {
+export default function BannerEditor(){const [slide,setSlide]=useState(1);return <><div className="title-row"><h2>بانرات الواجهة</h2><select aria-label="اختيار البانر" value={slide} onChange={e=>{if(window.confirm('الانتقال إلى بانر آخر؟ التعديلات غير المحفوظة ستُفقد.'))setSlide(Number(e.target.value));}}>{[1,2,3].map(n=><option value={n} key={n}>البانر {n}</option>)}</select></div><p>احفظ البانر الثاني والثالث لإضافتهما إلى العرض المتحرك. الأول يبقى محفوظاً.</p><SlideEditor key={slide} slide={slide}/></>}
+function SlideEditor({slide}:{slide:number}) {
   const router = useRouter();
   const [settings, setSettings] = useState<BannerSettings>(defaultBanner);
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
@@ -16,13 +17,13 @@ export default function BannerEditor() {
   useEffect(() => {
     let active = true; const controller = new AbortController();
     setLoading(true); setError('');
-    fetch('/api/admin/banner', {cache:'no-store', signal:controller.signal}).then(async response => {
+    fetch(`/api/admin/banner?slide=${slide}`, {cache:'no-store', signal:controller.signal}).then(async response => {
       if (response.status === 401) { router.replace('/admin/login'); throw new Error('انتهت الجلسة. سجّل الدخول مجدداً.'); }
       if (!response.ok) throw new Error('تعذر تحميل إعدادات البانر.');
       const data = await response.json(); if (active) { setSettings(data); setLoading(false); }
     }).catch(e => { if (active) setError(e.message || 'تعذر الاتصال.'); });
     return () => { active = false; controller.abort(); };
-  }, [attempt, router]);
+  }, [attempt, router, slide]);
   useEffect(() => {
     const next: Partial<Record<Slot,string>> = {};
     for (const slot of ['desktop','mobile'] as const) if (files[slot]) next[slot] = URL.createObjectURL(files[slot]);
@@ -44,7 +45,7 @@ export default function BannerEditor() {
         if (files[slot]) form.set(`${slot}File`, files[slot]);
         if (removed[slot]) form.set(`remove_${slot}`, 'true');
       }
-      const response = await fetch('/api/admin/banner', {method:'POST', body:form});
+      const response = await fetch(`/api/admin/banner?slide=${slide}`, {method:'POST', body:form});
       if (response.status === 401) { router.replace('/admin/login'); throw new Error('انتهت الجلسة. سجّل الدخول مجدداً.'); }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'تعذر الحفظ.');
@@ -87,7 +88,7 @@ export default function BannerEditor() {
       {error && <p role="alert" className="notice">{error}</p>}
       {message && <p role="status" className="added-message">{message}</p>}
     </form>
-    <h2>معاينة البانر</h2><BannerView settings={preview} preview/>
+    {slide!==1&&<button type="button" disabled={busy} className="choice danger" onClick={async()=>{if(!window.confirm('إزالة هذا البانر من العرض؟'))return;setBusy(true);try{const response=await fetch(`/api/admin/banner?slide=${slide}`,{method:'DELETE'});if(!response.ok)throw new Error('تعذر حذف البانر.');setFiles({});setRemoved({});setAttempt(n=>n+1);setMessage('تمت إزالة البانر من العرض.');router.refresh();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}>إزالة هذا البانر من العرض</button>}<h2>معاينة البانر</h2><BannerView settings={preview} preview/>
     <a className="choice" href="/" target="_blank" rel="noopener noreferrer">فتح الصفحة الرئيسية بعد الحفظ</a>
   </section>;
 }

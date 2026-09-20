@@ -7,8 +7,9 @@ import {BannerInputError, MAX_BANNER_BODY, validateBanner, validateBannerImage} 
 import type {BannerImage, BannerSlot} from '../../../banner-storage';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const GET = adminRoute('content', async () => {
-  return NextResponse.json(readBanner(db), {headers:{'Cache-Control':'no-store'}});
+function slideOf(request:Request){const slide=Number(new URL(request.url).searchParams.get('slide')||1);if(![1,2,3].includes(slide))throw new AccountError('البانر غير صالح.');return slide;}
+export const GET = adminRoute('content', async (request) => {
+  return NextResponse.json(readBanner(db,slideOf(request)), {headers:{'Cache-Control':'no-store'}});
 });
 async function limitedForm(request: Request) {
   if (Number(request.headers.get('content-length')) > MAX_BANNER_BODY)
@@ -39,7 +40,7 @@ export const POST = adminRoute('content', async (request, user) => {
         images[slot] = {bytes, mime:validateBannerImage(bytes, file.type)};
       } else if (form.get(`remove_${slot}`) === 'true') images[slot] = null;
     }
-    return NextResponse.json(saveBanner(db, settings, images, () => { assertAccess(user,'content'); audit(db,user,'تعديل البانر','homepage'); }), {headers:{'Cache-Control':'no-store'}});
+    return NextResponse.json(saveBanner(db, settings, images, () => { assertAccess(user,'content'); audit(db,user,'تعديل البانر','homepage'); }, slideOf(request)), {headers:{'Cache-Control':'no-store'}});
   } catch (error) {
     if (error instanceof AccountError) return apiError(error);
     if (error instanceof BannerInputError) return NextResponse.json({error:error.message},{status:400});
@@ -47,3 +48,5 @@ export const POST = adminRoute('content', async (request, user) => {
     return NextResponse.json({error:'تعذر حفظ البانر. حاول مرة أخرى.'},{status:500});
   }
 });
+
+export const DELETE=adminRoute('content',async(request,user)=>{const slide=slideOf(request);if(slide===1)throw new AccountError('البانر الأول أساسي؛ يمكنك تعديل محتواه.');const {audited}=await import('../../../lib/auth');audited(user,'content','حذف بانر',String(slide),()=>db.prepare('DELETE FROM homepage_extra_banners WHERE id=?').run(slide));return NextResponse.json({ok:true});});

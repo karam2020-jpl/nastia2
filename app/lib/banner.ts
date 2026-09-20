@@ -3,4 +3,4 @@ import {db} from './db';
 import {ensureBannerTable} from '../banner-storage';
 ensureBannerTable(db);
 export {db};
-export {readBanner, saveBanner, readBannerImage} from '../banner-storage';
+export {readBannerSlides, readBanner, saveBanner, readBannerImage} from '../banner-storage';
