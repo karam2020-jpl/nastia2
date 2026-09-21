@@ -98,3 +98,6 @@ npm.cmd run build
 ## رفع صور البانر وأيقونات الأقسام
 
 تظهر أزرار رفع صور الحاسوب والهاتف أعلى **البانرات وصور الواجهة** قبل حقول النص. اختر البانر ثم الصور ثم احفظ. من **الأقسام** يستطيع المالك رفع صورة عند الإنشاء أو اختيار **تعديل الاسم والصورة** لقسم موجود، مع المعاينة والاستبدال والحذف. المقاس المقترح للأيقونة 512×512 بكسل، PNG شفاف أو JPG/WebP، حتى 4 ميغابايت؛ لا تقبل SVG. تحفظ الصور في SQLite وتبقى مرتبطة بالقسم عند تغيير اسمه، وتحذف معه عند حذف قسم فارغ. الأقسام التي لا تملك صورة تحتفظ بالرمز السابق.
+
+### Rose investor presentation
+The storefront uses the approved ivory/dusty-rose design. The homepage presentation artwork is enabled by default; set `NASTIA_PRESENTATION=0` in `.env.local` and restart to display saved admin banner/category uploads instead. Original uploads and database records are preserved. Built-in images are generated illustrative artwork, not documentary product photographs. Product image replacement is deferred to phase two; existing product uploads are preserved. Prices and brand names come from the catalog and are not investment-performance claims.

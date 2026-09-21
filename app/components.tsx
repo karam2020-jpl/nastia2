@@ -8,7 +8,7 @@ import { money, Product } from './data';
 import { cartLineKey, useStore } from './providers';
 
 export function Header() {
-  const { items } = useStore();
+  const { items,categories } = useStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery,setSearchQuery]=useState('');
   const router=useRouter();
@@ -33,7 +33,7 @@ export function Header() {
       </div>
       <header className="header">
         <div className="container head">
-          <Link className="logo" href="/">Nastia Beauty</Link>
+          <Link className="logo" href="/">Nastia Beauty<small>BEAUTY LIVES IN YOU</small></Link>
           <form className="search" onSubmit={(event)=>{event.preventDefault();router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`)}}>
             <Search size={18} aria-hidden="true" />
             <input name="q" value={searchQuery} onChange={(event)=>setSearchQuery(event.target.value)} aria-label="البحث" placeholder="ابحثي عن منتج أو ماركة" />
@@ -58,6 +58,7 @@ export function Header() {
             </button>
           </nav>
         </div>
+        <nav className="category-nav container" aria-label="أقسام المتجر"><Link href="/">الرئيسية</Link>{categories.map(name=><Link key={name} href={"/products?category="+encodeURIComponent(name)}>{name}</Link>)}<Link href="/#brands-title">الماركات</Link></nav>
         {menuOpen && (
           <nav id="mobile-menu" className="mobile-menu" aria-label="قائمة الهاتف">
             <Link href="/" onClick={() => setMenuOpen(false)}>الرئيسية</Link>
@@ -75,8 +76,8 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="container">
-        <div><div className="logo" style={{ color: 'white' }}>Nastia Beauty</div><p>اختيارات عالمية للجمال، بواجهة عراقية أنيقة.</p></div>
-        <div><Link href="/support">الدعم والشكاوى</Link></div><div><b>التوصيل</b><p>التوصيل إلى جميع محافظات العراق</p><p>يُحفظ طلبك بأمان بعد التحقق من المخزون والتوصيل.</p></div>
+        <div><div className="logo" style={{ color: 'white' }}>Nastia Beauty</div><p>جمال مختار بعناية، وتفاصيل تشبهكِ.</p></div>
+        <div><Link href="/support">الدعم والشكاوى</Link></div><div><b>التوصيل</b><p>التوصيل إلى جميع محافظات العراق</p><p>للاستفسارات ومتابعة الطلبات، يسعدنا تواصلكِ مع الدعم.</p></div>
       </div>
     </footer>
   );
