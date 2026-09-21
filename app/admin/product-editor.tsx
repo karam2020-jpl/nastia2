@@ -25,7 +25,7 @@ export default function ProductEditor({product,onClose,onSaved}:{product:Product
       <label className="field">الأحجام — افصل بفاصلة<input required value={draft.sizes.join('،')} onChange={e=>setDraft({...draft,sizes:e.target.value.split(/[،,]/)})}/></label>
       <label className="field">المخزون<input type="number" min="0" step="1" required value={draft.stock} onChange={e=>setDraft({...draft,stock:Number(e.target.value)})}/></label>
       <label className="field wide">الوصف<textarea required maxLength={5000} value={draft.description} onChange={e=>setDraft({...draft,description:e.target.value})}/></label>
-      <div className="wide"><h3>صور المنتج ({images.length}/4)</h3><p className="muted">اختر حتى 4 صور JPG أو PNG أو WebP، حتى 4 ميغابايت للصورة. الصورة الأولى هي الرئيسية.</p>
+      <div className="wide"><h3>صور المنتج ({images.length}/4)</h3><p className="muted">اختر حتى 4 صور JPG أو PNG أو WebP، حتى 4 ميغابايت للصورة. الصورة الأولى هي الرئيسية. المقاس المفضل 1200 × 1200 بكسل (مربع)، مع وضع المنتج في المنتصف وترك هامش بسيط.</p>
         <label className="field">إضافة صور<input type="file" multiple accept="image/jpeg,image/png,image/webp" disabled={images.length>=4} onChange={e=>{
           const selected=Array.from(e.target.files||[]);e.target.value='';
           if(images.length+selected.length>4){setError('الحد الأقصى أربع صور. احذف صورة قبل إضافة غيرها.');return;}
